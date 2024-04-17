@@ -198,6 +198,8 @@ void afficher_graphe_largeur(pgraphe_t g, int r)
   }
   detruire_file(f);
 }
+
+
 void rec(pgraphe_t g)
 {
   g->couleur = 1;
@@ -212,6 +214,7 @@ void rec(pgraphe_t g)
     a = a->arc_suivant;
   }
 }
+
 void afficher_graphe_profondeur(pgraphe_t g, int r)
 {
   init_couleur_sommet(g);
@@ -269,13 +272,24 @@ void algo_dijkstra(pgraphe_t g, int r)
 }
 void affiche_chemin(pchemin_t c)
 {
-  printf("\n----Affichage du chemin----\n");
-  printf("%d", c->sommet->label);
-  for (int i = 0; i < c->longueur - 1; i++)
+  //printf("\nChemin : \n");
+  printf("(%d)", c->sommet->label);
+  if (c->longueur == 1)
   {
+    printf("\n");
+    return;
+  }
+  int i = 0;
+  for (;i < c->longueur - 1; i++)
+  {
+    if (i == c->longueur - 2)
+    {
+      break;
+    }
+    
     printf("->%d", c->liste_arc[i]->dest->label);
   }
-  printf("\n");
+  printf("->(%d)\n", c->liste_arc[i]->dest->label);
 }
 pchemin_t creer_chemin(pgraphe_t g, int taille, int *r)
 {
@@ -283,7 +297,7 @@ pchemin_t creer_chemin(pgraphe_t g, int taille, int *r)
   psommet_t s = chercher_sommet(g, r[0]);
   if (s == NULL)
   {
-    printf("erreur sommet inexistant\n");
+    //printf("erreur sommet inexistant\n");
     return NULL;
   }
   pchemin_t p = malloc(sizeof(chemin_t));
@@ -295,7 +309,7 @@ pchemin_t creer_chemin(pgraphe_t g, int taille, int *r)
     parc_t a = existence_arc(s->liste_arcs, chercher_sommet(g, r[i]));
     if (a == NULL)
     {
-      fprintf(stderr, "erreur arc inexistant\n");
+      //fprintf(stderr, "erreur arc inexistant\n");
       return NULL;
     }
 
@@ -304,6 +318,13 @@ pchemin_t creer_chemin(pgraphe_t g, int taille, int *r)
   }
   return p;
 }
+
+void detruire_chemin(pchemin_t c)
+{
+  free(c->liste_arc);
+  free(c);
+}
+
 // ======================================================================
 int elementaire(pgraphe_t g, chemin_t c)
 {
@@ -322,6 +343,8 @@ int elementaire(pgraphe_t g, chemin_t c)
   }
   return 1;
 }
+
+
 int simple(pgraphe_t g, chemin_t c)
 {
   for (int i = 0; i < c.longueur - 1; i++)
@@ -329,12 +352,13 @@ int simple(pgraphe_t g, chemin_t c)
     for (int j = i + 1; j < c.longueur - 1; j++)
     {
       if (c.liste_arc[i] == c.liste_arc[j])
-
         return 0;
     }
   }
   return 1;
 }
+
+
 int longueur_chemin(pchemin_t c, int x, int y)
 {
   int longeur = 0;
@@ -366,7 +390,7 @@ int longueur_chemin(pchemin_t c, int x, int y)
       }
     }
   }
-  return -1;
+  return 0;
 }
 
 int distance(pgraphe_t g, int x, int y)
@@ -420,6 +444,7 @@ int arc_dans_chemin(pchemin_t c, parc_t a)
   }
   return 0;
 }
+
 int eulerien(pgraphe_t g, pchemin_t c)
 {
   psommet_t p = g;
@@ -439,6 +464,7 @@ int eulerien(pgraphe_t g, pchemin_t c)
 
   return 1;
 }
+
 int sommet_dans_chemin(pchemin_t c, psommet_t s)
 {
   if (c->sommet == s)
@@ -481,12 +507,14 @@ int deja_visite_hamil(int *tab, int taille, int r)
   }
   return -1;
 }
+
 int rec_graphe_hamil(pgraphe_t g, psommet_t p, int *tab, int taille, int indice)
 {
   if (indice == taille)
   {
     return 0;
   }
+
   // partie qui évite que le chemin boucle
   int i = deja_visite_hamil(tab, indice, p->label); // regarde si le sommet a deja été visité
   int double_visite = 0;
@@ -516,6 +544,7 @@ int rec_graphe_hamil(pgraphe_t g, psommet_t p, int *tab, int taille, int indice)
     }
   }
 
+  // partie de test d'un chemin
   parc_t a = p->liste_arcs;
   int res;
   tab[indice++] = p->label;
@@ -530,6 +559,8 @@ int rec_graphe_hamil(pgraphe_t g, psommet_t p, int *tab, int taille, int indice)
     affiche_chemin(c);
     return 1;
   }
+  free(c->liste_arc);
+  free(c);
   while (a != NULL)
   {
 
@@ -566,7 +597,7 @@ int graphe_hamiltonien(pgraphe_t g)
 }
 int deja_visite_eul(int *tab, int taille, int r, int r2)
 {
-  for (int i = taille - 2; i > 1; i--)
+  for (int i = taille - 2; i > 0; i--)
   {
     if (tab[i] == r2 && tab[i - 1] == r)
     {
@@ -595,20 +626,23 @@ int rec_graphe_eul(pgraphe_t g, psommet_t p, int *tab, int taille, int indice)
     affiche_chemin(c);
     return 1;
   }
+  free(c->liste_arc);
+  free(c);
+
+  // optimisation
   while (a != NULL)
   {
     tab[indice] = a->dest->label;
     int i = deja_visite_eul(tab, indice + 1, p->label, a->dest->label);
-    printf("%d\n", i); // regarde si le sommet a deja été visité
     int double_visite = 0;
     int temp;
     if (i != -1) // si le sommet a deja été visité
     {
 
-      for (int j = i + 1; j < indice; j++) // on parcours tout les points visités depuis la dernière visite du sommet
+      for (int j = i + 1; j < indice + 1; j++) // on parcours tout les points visités depuis la dernière visite du sommet
       {
         temp = 0;
-        for (int k = 0; k < i - 1; k++) // et on regarde si le sommet a deja été visité avant
+        for (int k = 0; k < i; k++) // et on regarde si le sommet a deja été visité avant
         {
           if (tab[j] == tab[k] && tab[j + 1] == tab[k + 1])
           {
@@ -647,7 +681,7 @@ int graphe_eulerien(pgraphe_t g)
 {
   int taille = nombre_sommets(g);
   int indice = 0;
-  int *tab = malloc(sizeof(int) * taille * taille); // au dela on suppose que le graphe n'est pas hamiltonien
+  int *tab = malloc(sizeof(int) * taille * taille);
   for (int i = 0; i < taille * taille; i++)
   {
     tab[i] = 0;

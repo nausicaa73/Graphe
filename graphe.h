@@ -29,6 +29,7 @@ typedef struct a
   struct a *arc_suivant; // arc suivant
 
 } arc_t, *parc_t;
+
 typedef struct chemin_t // Un chemin est une suite consécutive d’arcs dans un graphe.
 {
   psommet_t sommet;  // arc de depart du chemin
@@ -66,6 +67,7 @@ void algo_dijkstra(pgraphe_t g, int r);
 void affiche_poids(pgraphe_t g, int r);
 void affiche_chemin(pchemin_t c);
 pchemin_t creer_chemin(pgraphe_t g, int taille, int *r);
+void detruire_chemin(pchemin_t c);
 int elementaire(pgraphe_t g, chemin_t c);
 int simple(pgraphe_t g, chemin_t c);
 int longueur_chemin(pchemin_t c, int x, int y);
